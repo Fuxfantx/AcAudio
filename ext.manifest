@@ -15,11 +15,13 @@ platforms:
         context:
             flags: ["-std=c++11", "-Ofast", "-ffunction-sections", "-fdata-sections"]
             linkFlags: ["-flto"]
+            libs: ["m", "pthread"]
 
     arm64-osx:
         context:
             flags: ["-std=c++11", "-Ofast", "-ffunction-sections", "-fdata-sections"]
             linkFlags: ["-flto"]
+            libs: ["m", "pthread"]
 
     armv7-android:
         context:
@@ -34,16 +36,19 @@ platforms:
     armv7-ios:
         context:
             flags: ["-std=c++11", "-Ofast", "-ffunction-sections", "-fdata-sections"]
-            linkFlags: ["-flto"]
+            linkFlags: ["-flto", "-ObjC"]
+            libs: ["m", "pthread"]
 
     arm64-ios:
         context:
             frameworks: ["CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
-            linkFlags: ["-flto"]
+            linkFlags: ["-flto", "-ObjC"]
+            libs: ["m", "pthread"]
 
     x86_64-ios:
         context:
             frameworks: ["CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
-            linkFlags: ["-flto"]
+            linkFlags: ["-flto", "-ObjC"]
+            libs: ["m", "pthread"]
