@@ -9,7 +9,7 @@ A `miniaudio` binding for `Defold Engine`. Only APIs used in `Aerials` are imple
 ### You Should Implement HitSound Like This
 
 ```lua
-local timer_delay = timer.delay
+local timer_delay = timer.delay   -- Defold API
 local CreateUnit = AcAudio.CreateUnit
 local ReleaseUnit = AcAudio.ReleaseUnit
 local PlayUnit = AcAudio.PlayUnit
