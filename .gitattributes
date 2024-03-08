@@ -1,3 +1,5 @@
 include/** linguist-vendored
 src/miniaudio.cpp linguist-vendored
 src/miniaudio.mm linguist-vendored
+
+ext.manifest linguist-language=YAML
