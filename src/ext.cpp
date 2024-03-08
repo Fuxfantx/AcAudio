@@ -31,6 +31,8 @@
 /* Includes */
 #include <miniaudio.h>
 #include <dmsdk/sdk.h>
+#include <dmsdk/dlib/buffer.h>
+#include <dmsdk/script/script.h>
 #include <dmsdk/dlib/log.h>
 #include <unordered_set>
 #include <unordered_map>
@@ -41,11 +43,11 @@
 struct AmUnit {   // Log the playing-or-not statuses of miniaudio sounds for suspending usage
 	bool playing;
 	ma_sound* sound_handle;
-	bool operator==(const AmUnit& other) const { return sound_handle == other.sound_handle; }
 };
 
 // The "Preview" Engine (fast to load, and slow to play)
 ma_engine PreviewEngine;
+ma_resource_manager* PreviewRM;
 ma_resource_manager_data_source* PreviewResource;
 AmUnit PreviewUnit;
 
@@ -55,20 +57,44 @@ ma_resource_manager player_rm, *PlayerRM;
 std::unordered_set<ma_resource_manager_data_source*> PlayerResources;
 std::unordered_map<ma_sound*, AmUnit> PlayerUnits;
 
-// Preview Functions
-static int AmPlayPreview(lua_State* L) {
-	return 0;
-}
-static int AmStopPreview(lua_State* L) {
-	return 0;
-}
-
 // Resource Level
 static int AmCreateResource(lua_State* L) {
-	return 0;
+	// ByteArray from Defold Lua
+	void* B;	uint32_t BSize;
+	const auto LB = dmScript::CheckBuffer(L, 1);
+	dmBuffer::GetBytes(LB -> m_Buffer, &B, &BSize);
+
+	// Decoding
+	const auto N = ma_resource_manager_pipeline_notifications_init();
+	ma_resource_manager_data_source* R = nullptr;
+	ma_resource_manager_register_encoded_data(PlayerRM, "B", B, (size_t)BSize);
+	const auto result = ma_resource_manager_data_source_init(
+		PlayerRM, "B",
+		MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_DECODE + MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_WAIT_INIT,
+		&N, R);
+	ma_resource_manager_unregister_data(PlayerRM, "B");
+
+	// Do Returns
+	if(result != MA_SUCCESS) {
+		lua_pushboolean(L, false);
+		lua_pushstring(L, "[!] Audio format not supported by miniaudio");
+	}
+	else {
+		lua_pushboolean(L, true);
+		lua_pushlightuserdata(L, R);
+		PlayerResources.emplace(R);
+	}
+	return 2;
 }
 static int AmReleaseResource(lua_State* L) {
-	return 0;
+	const auto R = (ma_resource_manager_data_source*)lua_touserdata(L, 1);
+	if( PlayerResources.count(R) ) {
+		PlayerResources.erase(R);
+		ma_resource_manager_data_source_uninit(R);
+		lua_pushboolean(L, true);
+	}
+	else lua_pushboolean(L, false);
+	return 1;
 }
 
 // Unit Level
@@ -91,6 +117,14 @@ static int AmSetTime(lua_State* L) {
 	return 0;
 }
 
+// Preview Functions
+static int AmPlayPreview(lua_State* L) {
+	return 0;
+}
+static int AmStopPreview(lua_State* L) {
+	return 0;
+}
+
 
 /* Binding Stuff */
 constexpr luaL_reg AmFuncs[] =
@@ -109,6 +143,7 @@ inline dmExtension::Result AmInit(dmExtension::Params* p) {
 		dmLogFatal("Failed to Init the miniaudio Engine \"Preview\".");
 		return dmExtension::RESULT_INIT_ERROR;
 	}
+	PreviewRM = ma_engine_get_resource_manager(&PreviewEngine);
 
 	// Init the Player Engine: a custom resource manager
 	const auto device = ma_engine_get_device(&PreviewEngine);   // The default device info
@@ -166,7 +201,7 @@ inline void AmOnEvent(dmExtension::Params* p, const dmExtension::Event* e) {
 }
 
 inline dmExtension::Result AmFinal(dmExtension::Params* p) {
-	// Close Exisiting Units(miniaudio sounds) for PlayerEngine
+	// Close Exisiting Units(miniaudio sounds)
 	if(PreviewUnit.sound_handle) {
 		ma_sound_stop(PreviewUnit.sound_handle);
 		ma_sound_uninit(PreviewUnit.sound_handle);
@@ -177,14 +212,14 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 			ma_sound_uninit(it->second.sound_handle);
 		}
 
-	// Close Existing Resources(miniaudio data sources) for PlayerEngine
+	// Close Existing Resources(miniaudio data sources)
 	if(PreviewResource)
 		ma_resource_manager_data_source_uninit(PreviewResource);
 	if( !PlayerResources.empty() )
 		for(auto it = PlayerResources.cbegin(); it != PlayerResources.cend(); ++it)
 			ma_resource_manager_data_source_uninit(*it);
 
-	// Uninit (miniaudio)Engines.
+	// Uninit (miniaudio)Engines
 	// Resource managers will be uninitialized automatically.
 	ma_engine_uninit(&PreviewEngine);
 	ma_engine_uninit(&PlayerEngine);
