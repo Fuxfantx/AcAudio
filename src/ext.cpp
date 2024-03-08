@@ -208,8 +208,8 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 	}
 	if( !PlayerUnits.empty() )
 		for(auto it = PlayerUnits.cbegin(); it != PlayerUnits.cend(); ++it) {
-			ma_sound_stop(it->second.sound_handle);
-			ma_sound_uninit(it->second.sound_handle);
+			ma_sound_stop(it->first);
+			ma_sound_uninit(it->first);
 		}
 
 	// Close Existing Resources(miniaudio data sources)
