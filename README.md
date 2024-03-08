@@ -1,8 +1,6 @@
 # Aerials Audio System
 
-A `miniaudio` binding for `Defold Engine`.
-
-Only APIs that `Aerials` needed is implemented.
+A `miniaudio` binding for `Defold Engine`. Only APIs used in `Aerials` are implemented.
 
 **(WIP)** Refer to `api/audio.script_api` for the usage.
 
