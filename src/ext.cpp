@@ -1,8 +1,12 @@
 /* Aerials Audio System */
 #pragma once
-#ifdef DM_PLATFORM_IOS  // Avoid iOS Runtime Linking
+#ifdef DM_PLATFORM_IOS   // Avoid iOS Runtime Linking
 #define MA_NO_RUNTIME_LINKING
 #endif
+
+
+/* SDK Includes */
+#include <dmsdk/sdk.h>
 
 
 /* Lua API Implementations */
@@ -17,28 +21,28 @@
 
 
 /* Binding Stuff */
-static const luaL_reg Audio[] =
+static const luaL_reg __AcAudio__[] =
 {
-
+	{0, 0}
 };
 
-inline dmExtension::Result LuaInit(dmExtension::Params* p) {
+inline dmExtension::Result __AcAudioLuaInit__(dmExtension::Params* p) {
 	lua_State* L = p->m_L;
 
 	// Register Modules
-	luaL_register(L, "Audio", Audio);
+	luaL_register(L, "Audio", __AcAudio__);
 
 	// Do API Stuff
-    lua_pop(L, 1);   // Defold Restriction: Must Get the Lua Stack Balanced in the Initiation Process.
-    return dmExtension::RESULT_OK;
+	lua_pop(L, 1);   // Defold Restriction: Must Get the Lua Stack Balanced in the Initiation Process.
+	return dmExtension::RESULT_OK;
 }
 
-inline dmExtension::Result OK(dmExtension::Params* params) {
-    return dmExtension::RESULT_OK;
+inline dmExtension::Result __AcAudioOK__(dmExtension::Params* params) {
+	return dmExtension::RESULT_OK;
 }
 
-inline dmExtension::Result APPOK(dmExtension::AppParams* params) {
-    return dmExtension::RESULT_OK;
+inline dmExtension::Result __AcAudioAPPOK__(dmExtension::AppParams* params) {
+	return dmExtension::RESULT_OK;
 }
 
-DM_DECLARE_EXTENSION(AcAudio, "AcAudio", APPOK, APPOK, LuaInit, nullptr, nullptr, OK)
+DM_DECLARE_EXTENSION(AcAudio, "AcAudio", __AcAudioAPPOK__, __AcAudioAPPOK__, __AcAudioLuaInit__, nullptr, nullptr, __AcAudioOK__)
