@@ -92,13 +92,6 @@ static int AmSetTime(lua_State* L) {
 }
 
 
-// Play Once
-// This is our suggested implementation to play a resource for "once".
-auto PLAY_ONCE = ""
-
-				 "";
-
-
 /* Binding Stuff */
 constexpr luaL_reg AmFuncs[] =
 {
@@ -140,9 +133,6 @@ inline dmExtension::Result AmInit(dmExtension::Params* p) {
 	// Lua Registration
 	luaL_register(p->m_L, "AcAudio", AmFuncs);
 	lua_pop(p->m_L, 1);
-
-	// Inject the Pure-Lua "Play Once" API
-	//luaL_dostring(p->m_L, PLAY_ONCE);
 	return dmExtension::RESULT_OK;
 }
 
