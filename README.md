@@ -29,7 +29,7 @@ if ResourceCreated then
         -- Choose a reasonable filter interval,
         -- And set the UnitCount according to it.
         --
-        UnitCount = math.ceil(UnitLen / 50)
+        UnitCount = math.ceil(UnitLen / 50)   -- Filter Interval: 50ms
         for i=2,UnitCount do
             local ok, u, l = CreateUnit(HitSoundRes)
             if ok then
