@@ -39,10 +39,9 @@
 
 
 /* Lua API Implementations */
-// "Am": Aerials miniaudio binding module
-struct AmUnit {   // Log the playing-or-not statuses of miniaudio sounds for suspending usage
+struct AmUnit {   // "Am": Aerials miniaudio binding module
 	ma_sound* sound_handle;
-	bool playing;
+	bool playing;   // Log the playing-or-not statuses of miniaudio sounds for suspending usage
 };
 
 // The "Preview" Engine (fast to load, and slow to play)
@@ -160,8 +159,13 @@ static int AmReleaseUnit(lua_State* L) {
 }
 static int AmPlayUnit(lua_State* L) {
 	const auto UH = (ma_sound*)lua_touserdata(L, 1);   // Unit Handle
+	const bool is_looping = lua_toboolean(L, 2);   // IsLooping
 
 	if( PlayerUnits.count(UH) ) {
+		// Set Looping
+		ma_sound_set_looping(UH, is_looping);
+
+		// Start
 		if( ma_sound_start(UH) == MA_SUCCESS ) {
 			PlayerUnits[UH].playing = true;
 			lua_pushnumber( L, ma_sound_get_time_in_milliseconds(UH) );   // Actual ms or nil
@@ -334,8 +338,7 @@ static int AmStopPreview(lua_State* L) {   // Should Be Safe
 
 
 /* Binding Stuff */
-constexpr luaL_reg AmFuncs[] =
-{
+constexpr luaL_reg AmFuncs[] = {
 	{"PlayPreview", AmPlayPreview}, {"StopPreview", AmStopPreview},
 	{"CreateResource", AmCreateResource}, {"ReleaseResource", AmReleaseResource},
 	{"CreateUnit", AmCreateUnit}, {"ReleaseUnit", AmReleaseUnit},
@@ -432,17 +435,10 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 		for(auto it = PlayerResources.cbegin(); it != PlayerResources.cend(); ++it)
 			ma_resource_manager_data_source_uninit(*it);
 
-	// Uninit (miniaudio)Engines
-	// Resource managers will be uninitialized automatically.
-	ma_engine_uninit(&PreviewEngine);
-	ma_engine_uninit(&PlayerEngine);
-
-	// Since it's the finalizer, there is no further cleranup.
-	return dmExtension::RESULT_OK;
+	// Uninit (miniaudio)Engines; resource managers will be uninitialized automatically here.
+	ma_engine_uninit(&PreviewEngine);		ma_engine_uninit(&PlayerEngine);
+	return dmExtension::RESULT_OK;   // Since it's the finalizer, there is no further cleranup.
 }
 
-inline dmExtension::Result AmAPPOK(dmExtension::AppParams* params) {
-	return dmExtension::RESULT_OK;
-}
-
+inline dmExtension::Result AmAPPOK(dmExtension::AppParams* params) { return dmExtension::RESULT_OK; }
 DM_DECLARE_EXTENSION(AcAudio, "AcAudio", AmAPPOK, AmAPPOK, AmInit, nullptr, AmOnEvent, AmFinal)
