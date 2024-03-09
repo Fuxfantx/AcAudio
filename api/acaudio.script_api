@@ -4,10 +4,11 @@
 
   - name: PlayPreview
     type: function
+    desc: This API WON'T get the buffer copied, so you should ALWAYS maintain a ref of the original buffer.
     parameters:
-    - name: Buf
+    - name: buf
       type: table
-    - name: IsLooping
+    - name: is_looping
       type: boolean
     returns:
     - name: OK
@@ -20,7 +21,7 @@
   - name: CreateResource
     type: function
     parameters:
-    - name: Buf
+    - name: buf
       type: table
     returns:
     - name: OK
@@ -32,7 +33,7 @@
     type: function
     desc: DO NOT release a resource refed by some unit(s).
     parameters:
-    - name: ResourceHandle
+    - name: resource_handle
       type: table
     returns:
     - name: OK
@@ -42,7 +43,7 @@
   - name: CreateUnit
     type: function
     parameters:
-    - name: ReleaseHandle
+    - name: resource_handle
       type: table
     returns:
     - name: OK
@@ -55,7 +56,7 @@
   - name: ReleaseUnit
     type: function
     parameters:
-    - name: UnitHandle
+    - name: unit_handle
       type: table
     returns:
     - name: OK
@@ -64,9 +65,9 @@
   - name: PlayUnit
     type: function
     parameters:
-    - name: UnitHandle
+    - name: unit_handle
       type: table
-    - name: IsLooping
+    - name: is_looping
       type: boolean
     returns:
     - name: actual_ms_or_nil
@@ -75,7 +76,7 @@
   - name: StopUnit
     type: function
     parameters:
-    - name: UnitHandle
+    - name: unit_handle
       type: table
     returns:
     - name: OK
@@ -84,7 +85,7 @@
   - name: GetTime
     type: function
     parameters:
-    - name: UnitHandle
+    - name: unit_handle
       type: table
     returns:
     - name: actual_ms_or_nil
@@ -93,9 +94,9 @@
   - name: SetTime
     type: function
     parameters:
-    - name: UnitHandle
+    - name: unit_handle
       type: table
-    - name: MsTime
+    - name: mstime
       type: number
     returns:
     - name: actual_ms_or_nil
