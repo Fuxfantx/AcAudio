@@ -54,7 +54,7 @@ end
 
 ---
 
-### Complying With Licenses Related
+### Complying with Licenses Related
 
 - The extension part is under the `MIT` License.
 
