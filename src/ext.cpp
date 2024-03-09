@@ -93,12 +93,12 @@ static int AmReleaseResource(lua_State* L) {
 	 * Notice:
 	 * You CANNOT release a resource refed by some unit(s).
 	 */
-	const auto R = (ma_resource_manager_data_source*)lua_touserdata(L, 1);   // Resource Handle
-	if( PlayerResources.count(R) ) {
-		PlayerResources.erase(R);
-		ma_resource_manager_data_source_uninit(R);
+	const auto RH = (ma_resource_manager_data_source*)lua_touserdata(L, 1);   // Resource Handle
+	if( PlayerResources.count(RH) ) {
+		PlayerResources.erase(RH);
+		ma_resource_manager_data_source_uninit(RH);
 		lua_pushboolean(L, true);   // OK
-		delete R;
+		delete RH;
 	}
 	else
 		lua_pushboolean(L, false);   // OK
@@ -109,9 +109,9 @@ static int AmReleaseResource(lua_State* L) {
 static int AmCreateUnit(lua_State* L) {
 	// Create a Sound
 	const auto S = new ma_sound;
-	const auto R = (ma_resource_manager_data_source*)lua_touserdata(L, 1);   // Resource Handle
+	const auto RH = (ma_resource_manager_data_source*)lua_touserdata(L, 1);   // Resource Handle
 	const auto result = ma_sound_init_from_data_source(
-		&PlayerEngine, R,
+		&PlayerEngine, RH,
 		// Notice that some "sound" flags same as "resource manager data source" flags are omitted here
 		MA_SOUND_FLAG_NO_PITCH | MA_SOUND_FLAG_NO_SPATIALIZATION,
 		nullptr, S   // Set Group to nullptr is allowed here
@@ -124,7 +124,7 @@ static int AmCreateUnit(lua_State* L) {
 
 		// Audio Length in Ms
 		uint64_t pcmlen = 0;   // The PCM length getter needs to return a ma_result value
-		ma_resource_manager_data_source_get_length_in_pcm_frames(R, &pcmlen);
+		ma_resource_manager_data_source_get_length_in_pcm_frames(RH, &pcmlen);
 		lua_pushnumber( L, (double)pcmlen / (double)ma_engine_get_sample_rate(&PlayerEngine) * 1000.0 );
 
 		// Unit Emplacing
