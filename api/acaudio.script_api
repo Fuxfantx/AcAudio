@@ -1,0 +1,102 @@
+- name: AcAudio
+  type: table
+  members:
+
+  - name: PlayPreview
+    type: function
+    parameters:
+    - name: Buf
+      type: table
+    - name: IsLooping
+      type: boolean
+    returns:
+    - name: OK
+      type: boolean
+
+  - name: StopPreview
+    type: function
+
+
+  - name: CreateResource
+    type: function
+    parameters:
+    - name: Buf
+      type: table
+    returns:
+    - name: OK
+      type: boolean
+    - name: resource_handle_or_msg
+      type: [table, string]
+
+  - name: ReleaseResource
+    type: function
+    desc: DO NOT release a resource refed by some unit(s).
+    parameters:
+    - name: ResourceHandle
+      type: table
+    returns:
+    - name: OK
+      type: boolean
+
+
+  - name: CreateUnit
+    type: function
+    parameters:
+    - name: ReleaseHandle
+      type: table
+    returns:
+    - name: OK
+      type: boolean
+    - name: unit_handle_or_msg
+      type: [table, string]
+    - name: audio_length
+      type: number
+
+  - name: ReleaseUnit
+    type: function
+    parameters:
+    - name: UnitHandle
+      type: table
+    returns:
+    - name: OK
+      type: boolean
+
+  - name: PlayUnit
+    type: function
+    parameters:
+    - name: UnitHandle
+      type: table
+    - name: IsLooping
+      type: boolean
+    returns:
+    - name: actual_ms_or_nil
+      type: number
+
+  - name: StopUnit
+    type: function
+    parameters:
+    - name: UnitHandle
+      type: table
+    returns:
+    - name: OK
+      type: boolean
+
+  - name: GetTime
+    type: function
+    parameters:
+    - name: UnitHandle
+      type: table
+    returns:
+    - name: actual_ms_or_nil
+      type: number
+
+  - name: SetTime
+    type: function
+    parameters:
+    - name: UnitHandle
+      type: table
+    - name: MsTime
+      type: number
+    returns:
+    - name: actual_ms_or_nil
+      type: number
