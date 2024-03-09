@@ -23,35 +23,35 @@ platforms:
 
     x86_64-osx:
         context:
-            frameworks: ["CoreAudio", "AudioUnit"]
+            frameworks: ["CoreFoundation", "CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
             linkFlags: ["-flto", "-ObjC"]
             libs: ["m", "pthread"]
 
     arm64-osx:
         context:
-            frameworks: ["CoreAudio", "AudioUnit"]
+            frameworks: ["CoreFoundation", "CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
             linkFlags: ["-flto", "-ObjC"]
             libs: ["m", "pthread"]
 
     x86_64-ios:
         context:
-            frameworks: ["CoreAudio", "AudioUnit"]
+            frameworks: ["CoreFoundation", "CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
             linkFlags: ["-flto", "-ObjC"]
             libs: ["m", "pthread"]
 
     armv7-ios:
         context:
-            frameworks: ["CoreAudio", "AudioUnit"]
+            frameworks: ["CoreFoundation", "CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
             linkFlags: ["-flto", "-ObjC"]
             libs: ["m", "pthread"]
 
     arm64-ios:
         context:
-            frameworks: ["CoreAudio", "AudioUnit"]
+            frameworks: ["CoreFoundation", "CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
             linkFlags: ["-flto", "-ObjC"]
             libs: ["m", "pthread"]
