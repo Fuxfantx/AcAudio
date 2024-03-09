@@ -2,7 +2,7 @@
 
 A `miniaudio` binding for `Defold Engine`. Only APIs used in `Aerials` are implemented.
 
-Refer to `api/acaudio.script_api` for API Usages.
+**Refer to `api/acaudio.script_api`** for API Usages.
 
 ---
 
