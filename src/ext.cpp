@@ -290,7 +290,7 @@ static int AmPlayPreview(lua_State* L) {
 
 			// Start
 			if( ma_sound_start(PreviewUnit.sound_handle) == MA_SUCCESS ) {
-				lua_pushboolean(L, true);
+				lua_pushboolean(L, true);   // OK
 				PreviewUnit.playing = true;
 			}
 			else {
@@ -303,7 +303,7 @@ static int AmPlayPreview(lua_State* L) {
 				PreviewUnit.playing = false;
 
 				// Clean Up 2,3
-				lua_pushboolean(L, false);
+				lua_pushboolean(L, false);   // OK
 				ma_resource_manager_data_source_uninit(PreviewResource);
 				delete PreviewResource;		PreviewResource = nullptr;
 				free(PreviewData);			PreviewData = nullptr;
@@ -316,14 +316,14 @@ static int AmPlayPreview(lua_State* L) {
 			PreviewUnit.playing = false;
 
 			// Clean Up 2,3
-			lua_pushboolean(L, false);
+			lua_pushboolean(L, false);   // OK
 			ma_resource_manager_data_source_uninit(PreviewResource);
 			delete PreviewResource;		PreviewResource = nullptr;
 			free(PreviewData);			PreviewData = nullptr;
 		}
 	}
 	else {   // Clean Up 2,3
-		lua_pushboolean(L, false);
+		lua_pushboolean(L, false);   // OK
 		delete PreviewResource;		PreviewResource = nullptr;
 		free(PreviewData);			PreviewData = nullptr;
 	}
@@ -436,8 +436,8 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 			ma_resource_manager_data_source_uninit(*it);
 
 	// Uninit (miniaudio)Engines; resource managers will be uninitialized automatically here.
-	ma_engine_uninit(&PreviewEngine);		ma_engine_uninit(&PlayerEngine);
-	return dmExtension::RESULT_OK;   // Since it's the finalizer, there is no further cleranup.
+	ma_engine_uninit(&PreviewEngine);			ma_engine_uninit(&PlayerEngine);
+	return dmExtension::RESULT_OK;   // No further cleranup since it's the finalizer.
 }
 
 inline dmExtension::Result AmAPPOK(dmExtension::AppParams* params) { return dmExtension::RESULT_OK; }
