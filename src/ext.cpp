@@ -34,7 +34,6 @@
 #include <dmsdk/dlib/buffer.h>
 #include <dmsdk/script/script.h>
 #include <dmsdk/dlib/log.h>
-#include <unordered_set>
 #include <unordered_map>
 
 
@@ -49,20 +48,24 @@ ma_engine PreviewEngine;
 ma_resource_manager* PreviewRM;
 ma_resource_manager_data_source* PreviewResource;   // delete & Set nullptr
 AmUnit PreviewUnit;   // sound_handle: delete & Set nullptr
-void* PreviewData;   // free & Set nullptr
 
 // The "Player" Engine (slow to load, and fast to play)
 ma_engine PlayerEngine;
 ma_resource_manager player_rm, *PlayerRM;
-std::unordered_set<ma_resource_manager_data_source*> PlayerResources;
-std::unordered_map<ma_sound*, AmUnit> PlayerUnits;
+std::unordered_map<ma_resource_manager_data_source*, void*> PlayerResources;   // Handle, CopiedBuffer
+std::unordered_map<ma_sound*, AmUnit> PlayerUnits;   // Handle, {Handle, IsPlaying}
 
 // Resource Level
 static int AmCreateResource(lua_State* L) {
-	// Get the ByteArray from Defold Lua
-	void* B;	uint32_t BSize;
 	const auto LB = dmScript::CheckBuffer(L, 1);   // Buf
-	dmBuffer::GetBytes(LB -> m_Buffer, &B, &BSize);
+
+	// Copy the ByteArray from Defold Lua
+	void *OB;
+	uint32_t BSize;
+	dmBuffer::GetBytes(LB -> m_Buffer, &OB, &BSize);
+
+	void *B = malloc(BSize);
+	memcpy(B, OB, BSize);
 
 	// Decoding
 	auto R = new ma_resource_manager_data_source;
@@ -79,12 +82,13 @@ static int AmCreateResource(lua_State* L) {
 	if(result == MA_SUCCESS) {
 		lua_pushboolean(L, true);   // OK
 		lua_pushlightuserdata(L, R);   // Resource Handle or Msg
-		PlayerResources.emplace(R);
+		PlayerResources.emplace(R, B);
 	}
 	else {
 		lua_pushboolean(L, false);   // OK
 		lua_pushstring(L, "[!] Audio format not supported by miniaudio");   // Resource Handle or Msg
 		delete R;
+		free(B);
 	}
 	return 2;
 }
@@ -95,8 +99,8 @@ static int AmReleaseResource(lua_State* L) {
 	 */
 	const auto RH = (ma_resource_manager_data_source*)lua_touserdata(L, 1);   // Resource Handle
 	if( PlayerResources.count(RH) ) {
-		PlayerResources.erase(RH);
 		ma_resource_manager_data_source_uninit(RH);
+		free(PlayerResources[RH]);			PlayerResources.erase(RH);
 		lua_pushboolean(L, true);   // OK
 		delete RH;
 	}
@@ -233,45 +237,36 @@ static int AmSetTime(lua_State* L) {   // Supports both setting when playing & s
 }
 
 // Preview Functions
-inline void stop_preview() {
-	// This function only consider the success circumstance,
-	//     so there are lots of if judgements omitted.
-	ma_sound_stop(PreviewUnit.sound_handle);
-	ma_sound_uninit(PreviewUnit.sound_handle);
-	delete PreviewUnit.sound_handle;
+static int AmStopPreview(lua_State* L) {   // Should be always safe
+	if(PreviewUnit.sound_handle) {
+		ma_sound_stop(PreviewUnit.sound_handle);
+		ma_sound_uninit(PreviewUnit.sound_handle);
+		delete PreviewUnit.sound_handle;
 
-	PreviewUnit.sound_handle = nullptr;
-	PreviewUnit.playing = false;
+		PreviewUnit.sound_handle = nullptr;
+		PreviewUnit.playing = false;
 
-	ma_resource_manager_data_source_uninit(PreviewResource);
-	delete PreviewResource;
-	PreviewResource = nullptr;
-
-	free(PreviewData);
-	PreviewData = nullptr;
+		ma_resource_manager_data_source_uninit(PreviewResource);
+		delete PreviewResource;
+		PreviewResource = nullptr;
+	}
+	return 0;
 }
 static int AmPlayPreview(lua_State* L) {
 	const auto LB = dmScript::CheckBuffer(L, 1);   // Buf
 	const bool is_looping = lua_toboolean(L, 2);   // IsLooping
 
-	// Pre-Cleaning to avoid the memory leaking
-	if(PreviewUnit.sound_handle)
-		stop_preview();
-
-	// Get the byte copy. This is for memory safety concerns.
-	void* B;
-	uint32_t BSize;
-	dmBuffer::GetBytes(LB -> m_Buffer, &B, &BSize);
-	PreviewData = malloc(BSize);
-	memcpy(PreviewData, B, BSize);
+	// Get the ByteArray & Pre-Cleaning
+	uint32_t BSize, *B;
+	dmBuffer::GetBytes(LB -> m_Buffer, (void**)&B, &BSize);
+	AmStopPreview(L);
 
 	// Load Resource
 	PreviewResource = new ma_resource_manager_data_source;
 	const auto N = ma_resource_manager_pipeline_notifications_init();
-	ma_resource_manager_register_encoded_data(PreviewRM, "PD", PreviewData, (size_t)BSize);
+	ma_resource_manager_register_encoded_data(PreviewRM, "PD", B, (size_t)BSize);
 	const auto res_result = ma_resource_manager_data_source_init(
 		PreviewRM, "PD",
-		// For "flags", using bor for the combination is recommended here
 		MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_STREAM | MA_RESOURCE_MANAGER_DATA_SOURCE_FLAG_WAIT_INIT,
 		&N, PreviewResource);
 	ma_resource_manager_unregister_data(PreviewRM, "PD");
@@ -280,7 +275,7 @@ static int AmPlayPreview(lua_State* L) {
 	if(res_result == MA_SUCCESS) {
 		PreviewUnit.sound_handle = new ma_sound;
 		const auto unit_result = ma_sound_init_from_data_source(
-			&PreviewEngine, PreviewData,
+			&PreviewEngine, PreviewResource,
 			MA_SOUND_FLAG_NO_PITCH | MA_SOUND_FLAG_NO_SPATIALIZATION,
 			nullptr, PreviewUnit.sound_handle
 		);
@@ -294,19 +289,18 @@ static int AmPlayPreview(lua_State* L) {
 				PreviewUnit.playing = true;
 			}
 			else {
-				ma_sound_stop(PreviewUnit.sound_handle);
-
 				// Clean Up 1
+				ma_sound_stop(PreviewUnit.sound_handle);
 				ma_sound_uninit(PreviewUnit.sound_handle);
+
 				delete PreviewUnit.sound_handle;
 				PreviewUnit.sound_handle = nullptr;
 				PreviewUnit.playing = false;
 
-				// Clean Up 2,3
+				// Clean Up 2
 				lua_pushboolean(L, false);   // OK
 				ma_resource_manager_data_source_uninit(PreviewResource);
 				delete PreviewResource;		PreviewResource = nullptr;
-				free(PreviewData);			PreviewData = nullptr;
 			}
 		}
 		else {
@@ -315,25 +309,19 @@ static int AmPlayPreview(lua_State* L) {
 			PreviewUnit.sound_handle = nullptr;
 			PreviewUnit.playing = false;
 
-			// Clean Up 2,3
+			// Clean Up 2
 			lua_pushboolean(L, false);   // OK
 			ma_resource_manager_data_source_uninit(PreviewResource);
 			delete PreviewResource;		PreviewResource = nullptr;
-			free(PreviewData);			PreviewData = nullptr;
 		}
 	}
-	else {   // Clean Up 2,3
+	else {   // Clean Up 2
 		lua_pushboolean(L, false);   // OK
-		delete PreviewResource;		PreviewResource = nullptr;
-		free(PreviewData);			PreviewData = nullptr;
+		delete PreviewResource;
+		PreviewResource = nullptr;
 	}
 
 	return 1;
-}
-static int AmStopPreview(lua_State* L) {   // Should Be Safe
-	if(PreviewUnit.sound_handle)
-		stop_preview();
-	return 0;
 }
 
 
@@ -422,7 +410,7 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 		ma_sound_stop(PreviewUnit.sound_handle);
 		ma_sound_uninit(PreviewUnit.sound_handle);
 	}
-	if( !PlayerUnits.empty() )
+	if( !PlayerUnits.empty() )   // No free() calls since it's the finalizer
 		for(auto it = PlayerUnits.cbegin(); it != PlayerUnits.cend(); ++it) {
 			ma_sound_stop(it->first);
 			ma_sound_uninit(it->first);
@@ -433,11 +421,11 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 		ma_resource_manager_data_source_uninit(PreviewResource);
 	if( !PlayerResources.empty() )
 		for(auto it = PlayerResources.cbegin(); it != PlayerResources.cend(); ++it)
-			ma_resource_manager_data_source_uninit(*it);
+			ma_resource_manager_data_source_uninit(it->first);
 
 	// Uninit (miniaudio)Engines; resource managers will be uninitialized automatically here.
 	ma_engine_uninit(&PreviewEngine);			ma_engine_uninit(&PlayerEngine);
-	return dmExtension::RESULT_OK;   // No further cleranup since it's the finalizer.
+	return dmExtension::RESULT_OK;   // No further cleranup since it's the finalizer
 }
 
 inline dmExtension::Result AmAPPOK(dmExtension::AppParams* params) { return dmExtension::RESULT_OK; }
