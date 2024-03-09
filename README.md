@@ -12,7 +12,6 @@ You should implement your HitSound system **with a Unit Pool** like this:
 
 ```lua
 local CreateUnit = AcAudio.CreateUnit
-local ReleaseUnit = AcAudio.ReleaseUnit
 local PlayUnit = AcAudio.PlayUnit
 
 -- 1.Create a HitSound Resource
