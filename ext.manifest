@@ -32,15 +32,13 @@ platforms:
         context:
             frameworks: ["CoreFoundation", "CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
-            linkFlags: ["-flto", "-ObjC"]
-            libs: ["m", "pthread"]
+            linkFlags: ["-flto"]
 
     x86_64-ios:
         context:
             frameworks: ["CoreFoundation", "CoreAudio", "AudioUnit"]
             flags: ["-std=c++11", "-O3", "-ffunction-sections", "-fdata-sections"]
-            linkFlags: ["-flto", "-ObjC"]
-            libs: ["m", "pthread"]
+            linkFlags: ["-flto"]
 
     armv7-ios:
         context:
