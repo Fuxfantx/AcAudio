@@ -14,9 +14,9 @@ You should implement your HitSound system **with a Unit Pool** like this:
 local CreateUnit = AcAudio.CreateUnit
 local PlayUnit = AcAudio.PlayUnit
 
--- 1.Create a HitSound Resource
+-- 1.Create a HitSound Resource (some_buf is a Defold Buffer)
 --
-local ResourceCreated, HitSoundRes = AcAudio.CreateResource(some_buf)   -- some_buf is a Defold Buffer
+local ResourceCreated, HitSoundRes = AcAudio.CreateResource(some_buf)
 
 -- 2.Create the HitSound Unit Pool
 --
