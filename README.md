@@ -16,7 +16,7 @@ local PlayUnit = AcAudio.PlayUnit
 
 -- 1.Create a HitSound Resource
 --
-local ResourceCreated, HitSoundRes = AcAudio.CreateResource(some_buf)
+local ResourceCreated, HitSoundRes = AcAudio.CreateResource(some_buf)   -- some_buf is a Defold Buffer
 
 -- 2.Create the HitSound Unit Pool
 --
@@ -40,7 +40,7 @@ if ResourceCreated then
     end
 end
 
--- 3.Encapsule the Playing Method with the Unit Pool Created below
+-- 3.Encapsule the Playing Method with the Unit Pool Created above
 --
 local Which = 1
 local function hit()
