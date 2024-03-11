@@ -44,9 +44,9 @@ end
 --
 local Which = 1
 local function hit()
-    PlayUnit(HitSoundUnits[Which], false)   -- Play the HintSound only once
+    PlayUnit(HitSoundUnits[Which], false)               -- Play the HintSound only once
     Which = (Which == UnitCount) and 1 or (Which + 1)   -- Update the counter
-    StopUnit(HitSoundUnits[Which], true)   -- Let the next Unit rewind to start
+    StopUnit(HitSoundUnits[Which], true)                -- Let the next Unit rewind to start
 end
 ```
 
