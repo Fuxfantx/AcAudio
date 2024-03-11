@@ -30,7 +30,7 @@ if ResourceCreated then
         -- And set the UnitCount according to it.
         --
         UnitCount = math.ceil(UnitLen / 50)   -- Filter Interval: 50ms
-        for i=2,UnitCount do
+        for i=2, UnitCount do
             local ok, u, l = CreateUnit(HitSoundRes)
             if ok then
                 HitSoundUnits[#HitSoundUnits+1] = u
@@ -44,9 +44,9 @@ end
 --
 local Which = 1
 local function hit()
-    PlayUnit(HitSoundUnits[Which], false)               -- Play the HintSound only once
-    Which = (Which == UnitCount) and 1 or (Which + 1)   -- Update the counter
-    StopUnit(HitSoundUnits[Which], true)                -- Let the next Unit rewind to start
+    PlayUnit(HitSoundUnits[Which], false)           -- Play the HintSound only once
+    Which = (Which==UnitCount) and 1 or (Which+1)   -- Update the counter
+    StopUnit(HitSoundUnits[Which], true)            -- Let the next Unit rewind to start
 end
 ```
 
