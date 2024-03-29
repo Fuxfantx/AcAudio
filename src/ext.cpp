@@ -331,7 +331,7 @@ inline dmExtension::Result AmInit(dmExtension::Params* p) {
 
 inline void AmOnEvent(dmExtension::Params* p, const dmExtension::Event* e) {
 	switch(e->m_Event) {   // Now you need to check the "playing" status manually.
-		case dmExtension::EVENT_ID_DEICONIFYAPP:
+		case dmExtension::EVENT_ID_ICONIFYAPP:
 		case dmExtension::EVENT_ID_DEACTIVATEAPP:
 			if(PreviewSound)
 				ma_sound_stop(PreviewSound);   // Sounds won't rewind when "stopping"
