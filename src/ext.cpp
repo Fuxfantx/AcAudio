@@ -355,7 +355,7 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 	// Close Existing Resources(miniaudio data sources)
 	if(PreviewResource)
 		ma_resource_manager_data_source_uninit(PreviewResource);
-	for( const auto it : PlayerUnits )
+	for( const auto it : PlayerResources )
 		ma_resource_manager_data_source_uninit(it.first);
 
 	// Uninit (miniaudio)Engines; resource managers will be uninitialized automatically here.
