@@ -100,6 +100,8 @@ static int AmCreateUnit(lua_State* L) {
 		ma_sound_get_length_in_seconds(S, &len);
 		lua_pushnumber( L, (uint64_t)(len * 1000.0) );
 
+		// Unit Emplacing
+		PlayerUnits[S] = 0;
 		return 3;
 	}
 	else {
@@ -364,7 +366,5 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 	return dmExtension::RESULT_OK;
 }
 
-inline dmExtension::Result AmAPPOK(dmExtension::AppParams* params) {
-	return dmExtension::RESULT_OK;
-}
+inline dmExtension::Result AmAPPOK(dmExtension::AppParams* params) { return dmExtension::RESULT_OK; }
 DM_DECLARE_EXTENSION(AcAudio, "AcAudio", AmAPPOK, AmAPPOK, AmInit, nullptr, AmOnEvent, AmFinal)
