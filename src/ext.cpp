@@ -332,10 +332,10 @@ inline dmExtension::Result AmInit(dmExtension::Params* p) {
 inline void AmOnEvent(dmExtension::Params* p, const dmExtension::Event* e) {
 	switch(e->m_Event) {   // Now you need to check the "playing" status manually.
 		case dmExtension::EVENT_ID_DEICONIFYAPP:
-		case dmExtension::EVENT_ID_DEACTIVATEAPP: {
+		case dmExtension::EVENT_ID_DEACTIVATEAPP:
 			if(PreviewSound)
 				ma_sound_stop(PreviewSound);   // Sounds won't rewind when "stopping"
-			for( const auto it : PlayerUnits ) {
+			for( const auto it : PlayerUnits )
 				ma_sound_stop(it.first);
 		default:;   // break omitted
 	}
@@ -347,7 +347,7 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 		ma_sound_stop(PreviewSound);
 		ma_sound_uninit(PreviewSound);
 	}
-	for(constu auto it : PlayerUnits) {   // No free() calls since it's the finalizer
+	for(const auto it : PlayerUnits) {   // No free() calls since it's the finalizer
 		ma_sound_stop(it.first);
 		ma_sound_uninit(it.first);
 	}
