@@ -7711,10 +7711,13 @@ MA_API ma_uint64 ma_sound_group_get_time_in_pcm_frames(const ma_sound_group* pGr
 /* END SECTION: miniaudio_engine.h */
 
 
+#include <assert.h>
+#include <stdlib.h>         /* For malloc(), free(), wcstombs(). */
+#include <string.h>         /* For memset() */
+
 #ifndef MA_ASSERT
 #define MA_ASSERT(condition)            assert(condition)
 #endif
-
 #ifndef MA_MALLOC
 #define MA_MALLOC(sz)                   malloc((sz))
 #endif
