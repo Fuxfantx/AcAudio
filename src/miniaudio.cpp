@@ -15,11 +15,8 @@ GitHub:        https://github.com/mackron/miniaudio
 #ifndef miniaudio_c
 #define miniaudio_c
 
-#include <assert.h>
 #include <limits.h>         /* For INT_MAX */
 #include <math.h>           /* sin(), etc. */
-#include <stdlib.h>         /* For malloc(), free(), wcstombs(). */
-#include <string.h>         /* For memset() */
 
 #include <stdarg.h>
 #include <stdio.h>
