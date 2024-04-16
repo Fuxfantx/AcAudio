@@ -777,45 +777,6 @@ MA_API const char* ma_version_string(void)
 Standard Library Stuff
 
 ******************************************************************************/
-#ifndef MA_ASSERT
-#define MA_ASSERT(condition)            assert(condition)
-#endif
-
-#ifndef MA_MALLOC
-#define MA_MALLOC(sz)                   malloc((sz))
-#endif
-#ifndef MA_REALLOC
-#define MA_REALLOC(p, sz)               realloc((p), (sz))
-#endif
-#ifndef MA_FREE
-#define MA_FREE(p)                      free((p))
-#endif
-
-static MA_INLINE void ma_zero_memory_default(void* p, size_t sz)
-{
-    if (p == NULL) {
-        MA_ASSERT(sz == 0); /* If this is triggered there's an error with the calling code. */
-        return;
-    }
-
-    if (sz > 0) {
-        memset(p, 0, sz);
-    }
-}
-
-
-#ifndef MA_ZERO_MEMORY
-#define MA_ZERO_MEMORY(p, sz)           ma_zero_memory_default((p), (sz))
-#endif
-#ifndef MA_COPY_MEMORY
-#define MA_COPY_MEMORY(dst, src, sz)    memcpy((dst), (src), (sz))
-#endif
-#ifndef MA_MOVE_MEMORY
-#define MA_MOVE_MEMORY(dst, src, sz)    memmove((dst), (src), (sz))
-#endif
-
-#define MA_ZERO_OBJECT(p)               MA_ZERO_MEMORY((p), sizeof(*(p)))
-
 #define ma_countof(x)                   (sizeof(x) / sizeof(x[0]))
 #define ma_max(x, y)                    (((x) > (y)) ? (x) : (y))
 #define ma_min(x, y)                    (((x) < (y)) ? (x) : (y))
@@ -81199,5 +81160,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-
 #endif
