@@ -7710,6 +7710,49 @@ MA_API ma_uint64 ma_sound_group_get_time_in_pcm_frames(const ma_sound_group* pGr
 #endif  /* MA_NO_ENGINE */
 /* END SECTION: miniaudio_engine.h */
 
+
+#ifndef MA_ASSERT
+#define MA_ASSERT(condition)            assert(condition)
+#endif
+
+#ifndef MA_MALLOC
+#define MA_MALLOC(sz)                   malloc((sz))
+#endif
+#ifndef MA_REALLOC
+#define MA_REALLOC(p, sz)               realloc((p), (sz))
+#endif
+#ifndef MA_FREE
+#define MA_FREE(p)                      free((p))
+#endif
+
+#ifndef MA_ZERO_MEMORY
+    static MA_INLINE void ma_zero_memory_default(void* p, size_t sz)
+    {
+        if (p == NULL) {
+            MA_ASSERT(sz == 0); /* If this is triggered there's an error with the calling code. */
+            return;
+        }
+
+        if (sz > 0) {
+            memset(p, 0, sz);
+        }
+    }
+#define MA_ZERO_MEMORY(p, sz)           ma_zero_memory_default((p), (sz))
+#endif
+
+#ifndef MA_COPY_MEMORY
+#define MA_COPY_MEMORY(dst, src, sz)    memcpy((dst), (src), (sz))
+#endif
+
+#ifndef MA_MOVE_MEMORY
+#define MA_MOVE_MEMORY(dst, src, sz)    memmove((dst), (src), (sz))
+#endif
+
+#ifndef MA_ZERO_OBJECT
+#define MA_ZERO_OBJECT(p)               MA_ZERO_MEMORY((p), sizeof(*(p)))
+#endif
+
+
 #ifdef __cplusplus
 }
 #endif
