@@ -17,7 +17,7 @@ extern "C" {
 #ifndef OV_EXCLUDE_STATIC_CALLBACKS
 #define OV_EXCLUDE_STATIC_CALLBACKS
 #endif
-#include <vorbis/vorbisfile.h>
+#include <vorbisfile.h>
 #endif
 
 typedef struct
