@@ -6,12 +6,9 @@
 #include <dmsdk/dlib/time.h>
 #include <dmsdk/dlib/buffer.h>
 #include <dmsdk/script/script.h>
+#include <miniaudio/miniaudio_all.h>
 #include <dmsdk/dlib/log.h>
 #include <unordered_map>
-
-#include <miniaudio/miniaudio.h>
-#include <miniaudio/miniaudio_libopus.h>
-#include <miniaudio/miniaudio_libvorbis.h>
 
 
 /* Lua API Implementations */
@@ -205,13 +202,12 @@ constexpr luaL_reg AmFuncs[] = {
 	{"CreateUnit", AmCreateUnit}, {"ReleaseUnit", AmReleaseUnit},
 	{"PlayUnit", AmPlayUnit}, {"StopUnit", AmStopUnit},
 	{"GetTime", AmGetTime}, {"SetTime", AmSetTime},
-	{"CheckPlaying", AmCheckPlaying},
-	{nullptr, nullptr}
+	{"CheckPlaying", AmCheckPlaying}, {0, 0}
 };
-
 inline dmExtension::Result AmInit(dmExtension::Params* p) {
-	// Init a Pseudo Engine with Default Behaviors
+	// Init a Pseudo Engine with Default Behaviors & Refer to the Vorbis / Opus Extension
 	ma_engine PseudoEngine;
+	ma_decoding_backend_vtable* vo_binding[] = { &mat_libopus, &mat_libvorbis };
 	if( ma_engine_init(nullptr, &PseudoEngine) != MA_SUCCESS ) {
 		dmLogFatal("Failed to Init the miniaudio Engine \"Preview\".");
 		return dmExtension::RESULT_INIT_ERROR;
@@ -220,9 +216,12 @@ inline dmExtension::Result AmInit(dmExtension::Params* p) {
 	// Init the Player Engine: a custom resource manager
 	const auto device = ma_engine_get_device(&PseudoEngine);   // The default device info
 	auto rm_config		= ma_resource_manager_config_init();
-		 rm_config.decodedFormat			= device -> playback.format;
-		 rm_config.decodedChannels			= device -> playback.channels;
-		 rm_config.decodedSampleRate		= device -> sampleRate;
+		 rm_config.decodedFormat						= device -> playback.format;
+		 rm_config.decodedChannels						= device -> playback.channels;
+		 rm_config.decodedSampleRate					= device -> sampleRate;
+		 rm_config.customDecodingBackendCount			= sizeof(vo_binding) / sizeof(vo_binding[0]);
+		 rm_config.ppCustomDecodingBackendVTables		= vo_binding;
+		 rm_config.pCustomDecodingBackendUserData		= nullptr;
 	if( ma_resource_manager_init(&rm_config, &player_rm) != MA_SUCCESS) {
 		dmLogFatal("Failed to Init the miniaudio Resource Manager \"PlayerRM\".");
 		return dmExtension::RESULT_INIT_ERROR;
@@ -231,7 +230,7 @@ inline dmExtension::Result AmInit(dmExtension::Params* p) {
 
 	// Init the Player Engine: a custom engine config
 	auto engine_config			= ma_engine_config_init();
-		 engine_config.pResourceManager		= PlayerRM;
+		 engine_config.pResourceManager			= PlayerRM;
 	if( ma_engine_init(&engine_config, &PlayerEngine) != MA_SUCCESS ) {
 		dmLogFatal("Failed to Init the miniaudio Engine \"Player\".");
 		return dmExtension::RESULT_INIT_ERROR;
@@ -270,7 +269,5 @@ inline dmExtension::Result AmFinal(dmExtension::Params* p) {
 	ma_engine_uninit(&PlayerEngine);   // Will be nullified byte-by-byte in the next initialization
 	return dmExtension::RESULT_OK;
 }
-inline dmExtension::Result AmAPPOK(dmExtension::AppParams* params) {
-	return dmExtension::RESULT_OK;
-}
+inline dmExtension::Result AmAPPOK(dmExtension::AppParams* params)  { return dmExtension::RESULT_OK; }
 DM_DECLARE_EXTENSION(AcAudio, "AcAudio", AmAPPOK, AmAPPOK, AmInit, nullptr, AmOnEvent, AmFinal)
