@@ -8,7 +8,10 @@
 #include <dmsdk/script/script.h>
 #include <dmsdk/dlib/log.h>
 #include <unordered_map>
-#include <miniaudio.h>   // Trimmings are moved to ext.manifest now
+
+#include <miniaudio/miniaudio.h>
+#include <miniaudio/miniaudio_libopus.h>
+#include <miniaudio/miniaudio_libvorbis.h>
 
 
 /* Lua API Implementations */
