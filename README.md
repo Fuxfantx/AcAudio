@@ -1,10 +1,10 @@
 # Aerials Audio System
 
-A `miniaudio` binding for `Defold Engine`. Only APIs used in `Aerials` are implemented.
+A `miniaudio` binding for `Defold Engine`.
 
-**Refer to** `api/acaudio.script_api` **for API usages.**
+Only APIs used in `Aerials` are implemented. **Refer to** `api/acaudio.script_api` **for API usages.**
 
-*\`**Note**: If you want to bundle a `Windows Application` with this extension, you may need to put a valid `MSVCRT.lib` file into the `lib/x86_64-win32` directory.*
+***Note**: If you want to bundle a `Windows Application` with this extension, you may need to put a valid `MSVCRT.lib` file into the `lib/x86_64-win32` directory.*
 
 ---
 
