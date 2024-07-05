@@ -16,34 +16,28 @@ You should implement your HitSound system **with a Unit Pool** like this:
 local CreateUnit = AcAudio.CreateUnit
 local PlayUnit = AcAudio.PlayUnit
 
--- 1.Create a HitSound Resource (some_buf is a Defold Buffer)
---
-local ResourceCreated, HitSoundRes = AcAudio.CreateResource(some_buf)
-
--- 2.Create the HitSound Unit Pool
+-- Create the HitSound Unit Pool (some_buf is a Defold Buffer)
 --
 local HitSoundUnits, UnitCount
-if ResourceCreated then
-    local UnitCreated, FirstUnit, UnitLen = CreateUnit(HitSoundRes)
-    if UnitCreated then
-        HitSoundUnits = {FirstUnit}
-        --
-        -- Choose a reasonable filter interval,
-        -- And set the UnitCount according to it.
-        --
-        UnitCount = math.ceil(UnitLen / 50)            -- Filter Interval: 50ms
-        UnitCount = (UnitCount>1) and UnitCount or 2   -- Use at least 2 Units
-        for i=2, UnitCount do
-            local ok, u, l = CreateUnit(HitSoundRes)
-            if ok then
-                HitSoundUnits[#HitSoundUnits+1] = u
-            end
+local UnitCreated, FirstUnit, UnitLen = CreateUnit(some_buf)
+if UnitCreated then
+    HitSoundUnits = {FirstUnit}
+    --
+    -- Choose a reasonable filter interval,
+    -- And set the UnitCount according to it.
+    --
+    UnitCount = math.ceil(UnitLen / 50)            -- Filter Interval: 50ms
+    UnitCount = (UnitCount>1) and UnitCount or 2   -- Use at least 2 Units
+    for i=2, UnitCount do
+        local ok, u, l = CreateUnit(some_buf)
+        if ok then
+            HitSoundUnits[#HitSoundUnits+1] = u
         end
-        UnitCount = #HitSoundUnits
     end
+    UnitCount = #HitSoundUnits
 end
 
--- 3.Encapsule the Playing Method with the Unit Pool Created above
+-- Encapsule the Playing Method with the Unit Pool Created above
 --
 local Which = 1
 local function hit()
