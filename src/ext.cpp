@@ -48,12 +48,13 @@ inline void AcAudioMakeMetatableForUnit(lua_State* L) {		// Buffer -> AcAudioUni
 }
 
 inline bool AcAudioIsUnit(lua_State* L) {					// (Unit, ···)    Initially
-	if(! lua_getmetatable(L, 1) )					// (Unit, ···) -> uMetaTable
-		return false;
-
-	lua_rawgeti(L, -1, 0xACA8D10);						// (Unit, ···) -> uMetaTable -> Tag
-	const bool is_unit = lua_toboolean(L, -1);
-	return lua_pop(L,2), is_unit;							// (Unit, ···)    Finally
+#ifdef ACAUDIO_NOCHECK
+	return true;
+#else
+	if(! lua_getmetatable(L, 1) )					return false;
+	const bool is_unit = ( lua_rawgeti(L, -1, 0xACA8D10), lua_toboolean(L, -1) );
+	return lua_pop(L, 2), is_unit;							// (Unit, ···)    Finally
+#endif
 }
 
 
@@ -268,6 +269,5 @@ inline void AcAudioOnEvent(dmExtension::Params* p, const dmExtension::Event* e) 
 inline dmExtension::Result AcAudioFinal(dmExtension::Params* p)		  { return dmExtension::RESULT_OK; }
 inline dmExtension::Result AcAudioAPPInit(dmExtension::AppParams* p)  { return dmExtension::RESULT_OK; }
 inline dmExtension::Result AcAudioAPPFinal(dmExtension::AppParams* p) { // We assume this func to be called
-	return ma_engine_uninit(&acaudio_engine), dmExtension::RESULT_OK;   // With the lua_State closed.
-}
+	return ma_engine_uninit(&acaudio_engine), dmExtension::RESULT_OK; } // With the lua_State closed.
 DM_DECLARE_EXTENSION(AcAudio, "AcAudio", AcAudioAPPInit, AcAudioAPPFinal, AcAudioInit, nullptr, AcAudioOnEvent, AcAudioFinal)
