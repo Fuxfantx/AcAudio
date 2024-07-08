@@ -252,7 +252,7 @@ inline dmExtension::Result AcAudioInit(dmExtension::Params* p) {
 	luaL_register(L, "AcAudio", AcAudioAPIs);			// AcAudioAPIs
 	luaL_newmetatable(L, "AcAudioSource");				// AcAudioAPIs -> sMetatable
 	lua_pushcfunction(L, AcAudioSourceGcMethod);				// AcAudioAPIs -> sMetatable -> sGcMethod
-	lua_setfield(L, 1, "__gc");							// AcAudioAPIs -> sMetatable
+	lua_setfield(L, 2, "__gc");							// AcAudioAPIs -> sMetatable
 	return lua_pop(L,2), dmExtension::RESULT_OK;
 }
 
