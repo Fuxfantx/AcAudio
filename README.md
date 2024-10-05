@@ -16,10 +16,10 @@ You should implement your HitSound system **with a Unit Pool** like this:
 local CreateUnit = AcAudio.CreateUnit
 local PlayUnit = AcAudio.PlayUnit
 
--- Create the HitSound Unit Pool (some_buf is a Defold Buffer)
+-- Create the HitSound Unit Pool (some_src is created from AcAudio.CreateSource)
 --
 local HitSoundUnits, UnitCount
-local UnitCreated, FirstUnit, UnitLen = CreateUnit(some_buf)
+local UnitCreated, FirstUnit, UnitLen = CreateUnit(some_src)
 if UnitCreated then
     HitSoundUnits = {FirstUnit}
     --
