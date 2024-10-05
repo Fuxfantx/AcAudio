@@ -19,8 +19,8 @@ local PlayUnit = AcAudio.PlayUnit
 -- Create the HitSound Unit Pool (some_src is created from AcAudio.CreateSource)
 --
 local HitSoundUnits, UnitCount
-local UnitCreated, FirstUnit, UnitLen = CreateUnit(some_src)
-if UnitCreated then
+local FirstUnit, UnitLen = CreateUnit(some_src)
+if FirstUnit then
     HitSoundUnits = {FirstUnit}
     --
     -- Choose a reasonable filter interval,
@@ -29,8 +29,8 @@ if UnitCreated then
     UnitCount = math.ceil(UnitLen / 50)            -- Filter Interval: 50ms
     UnitCount = (UnitCount>1) and UnitCount or 2   -- Use at least 2 Units
     for i=2, UnitCount do
-        local ok, u, l = CreateUnit(some_buf)
-        if ok then
+        local u, l = CreateUnit(some_buf)
+        if u then
             HitSoundUnits[#HitSoundUnits+1] = u
         end
     end
