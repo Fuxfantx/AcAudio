@@ -1,27 +1,12 @@
 /* Aerials Audio System */
 #pragma once
 #include <dmsdk/sdk.h>
-#include <dmsdk/dlib/hashtable.h>
 #include <miniaudio/miniaudio_all.h>
 #include <unordered_map>
 
 struct PseudoContext {
-	struct Module {
-		char*       m_Script;
-		uint32_t    m_ScriptSize;
-		char*       m_Name;
-		void*       m_Resource;
-		char*       m_Filename;
-	};
 	dmConfigFile::HConfig       m_ConfigFile;
 	dmResource::HFactory        m_ResourceFactory;
-	dmGraphics::HContext        m_GraphicsContext;
-	dmHashTable64<Module>       m_Modules;
-	dmHashTable64<Module*>      m_PathToModule;
-	dmHashTable64<int>          m_HashInstances;
-	dmArray<void*>				m_ScriptExtensions;
-	lua_State*                  m_LuaState;
-	int                         m_ContextTableRef;
 };
 struct AcAudioSource {
 	ma_resource_manager_data_source source;
@@ -230,13 +215,13 @@ static int AcAudioSetTime(lua_State* L) {
 	// Acquire Sound Length & Attempt Ms
 	float len = 0;
 	ma_sound_get_length_in_seconds(pSound, &len);		len *= 1000.0f;
-	auto attempt_ms = (int64_t)luaL_checknumber(L, 2);
-		 attempt_ms = (attempt_ms > 0) ? attempt_ms : 0;
-		 attempt_ms = (attempt_ms < len-2.0) ? attempt_ms : (len-2.0) ;
+	auto targetMs = (int64_t)luaL_checknumber(L, 2);
+		 targetMs = (targetMs > 0) ? targetMs : 0;
+		 targetMs = (targetMs < len-2.0) ? targetMs : (len-2.0) ;
 
 	// Return the Result
 	return lua_pushboolean(L, MA_SUCCESS ==
-		ma_sound_seek_to_pcm_frame( pSound, (uint64_t)(attempt_ms * ma_engine_get_sample_rate(&AcAudioEngine) / 1000.0) )
+		ma_sound_seek_to_pcm_frame( pSound, (uint64_t)(targetMs * ma_engine_get_sample_rate(&AcAudioEngine) / 1000.0) )
 	), 1;
 }
 
@@ -262,27 +247,27 @@ constexpr luaL_reg AcAudioAPIs[] = {
 inline dmExtension::Result AcAudioInit(dmExtension::Params* p) {
 	// Init a Pseudo Engine with Default Behaviors & Refer to the Vorbis / Opus Extension
 	ma_engine PseudoEngine;
-	ma_decoding_backend_vtable* vo_binding[] = { &mat_libopus, &mat_libvorbis };
-	if( ma_engine_init(nullptr, &PseudoEngine) != MA_SUCCESS ) {
+	ma_decoding_backend_vtable* Exts[] = { &mat_libopus, &mat_libvorbis };
+	if( ma_engine_init( nullptr, &PseudoEngine ) != MA_SUCCESS ) {
 		dmLogFatal("Failed to Init the miniaudio Engine.");
 		return dmExtension::RESULT_INIT_ERROR;
 	}
 
 	// Init the Player Engine: a custom resource manager
-	const auto device = ma_engine_get_device(&PseudoEngine);   // The default device info
-	auto rm_config			= ma_resource_manager_config_init();
-		 rm_config.decodedFormat					= device -> playback.format;
-		 rm_config.decodedChannels					= device -> playback.channels;
-		 rm_config.decodedSampleRate				= device -> sampleRate;
-		 rm_config.customDecodingBackendCount		= sizeof(vo_binding) / sizeof(vo_binding[0]);
-		 rm_config.ppCustomDecodingBackendVTables	= vo_binding;
-	ma_resource_manager_init(&rm_config, &AcAudioManager);
-	ma_engine_uninit(&PseudoEngine);
+	const auto device = ma_engine_get_device( &PseudoEngine );   // The default device info
+	auto rmConfig			= ma_resource_manager_config_init();
+		 rmConfig.decodedFormat						= device -> playback.format;
+		 rmConfig.decodedChannels					= device -> playback.channels;
+		 rmConfig.decodedSampleRate					= device -> sampleRate;
+		 rmConfig.customDecodingBackendCount		= sizeof(Exts) / sizeof( Exts[0] );
+		 rmConfig.ppCustomDecodingBackendVTables	= Exts;
+	ma_resource_manager_init( &rmConfig, &AcAudioManager );
+	ma_engine_uninit( &PseudoEngine );
 
 	// Init the Player Engine: a custom engine config
-	auto engine_config			= ma_engine_config_init();
-		 engine_config.pResourceManager			= &AcAudioManager;
-	ma_engine_init(&engine_config, &AcAudioEngine);
+	auto engineConfig			= ma_engine_config_init();
+		 engineConfig.pResourceManager			= &AcAudioManager;
+	ma_engine_init( &engineConfig, &AcAudioEngine );
 
 	// Lua: Create API Table & tname Metable for AcAudio Source
 	const auto L = p->m_L ;
@@ -293,7 +278,7 @@ inline dmExtension::Result AcAudioInit(dmExtension::Params* p) {
 	return lua_pop(L, 2), dmExtension::RESULT_OK;
 }
 
-inline void AcAudioOnEvent(dmExtension::Params* p, const dmExtension::Event* e) {
+inline void AcAudioOnEvent(dmExtension::Params*, const dmExtension::Event* e) {
 	switch(e->m_Event) {   // You may want to check the "playing" status manually if needed.
 		case dmExtension::EVENT_ID_ICONIFYAPP:
 		case dmExtension::EVENT_ID_DEACTIVATEAPP:
@@ -303,8 +288,13 @@ inline void AcAudioOnEvent(dmExtension::Params* p, const dmExtension::Event* e) 
 	}
 }
 
-inline dmExtension::Result AcAudioFinal(dmExtension::Params* p)		  { return dmExtension::RESULT_OK; }
-inline dmExtension::Result AcAudioAPPInit(dmExtension::AppParams* p)  { return dmExtension::RESULT_OK; }
-inline dmExtension::Result AcAudioAPPFinal(dmExtension::AppParams* p) { // We assume this func to be called
-	return ma_engine_uninit(&AcAudioEngine), dmExtension::RESULT_OK;  } // With the lua_State closed.
+inline dmExtension::Result AcAudioFinal(dmExtension::Params*) {
+	return dmExtension::RESULT_OK;
+}
+inline dmExtension::Result AcAudioAPPInit(dmExtension::AppParams*) {
+	return dmExtension::RESULT_OK;
+}
+inline dmExtension::Result AcAudioAPPFinal(dmExtension::AppParams*) {   // We assume this func to be called
+	return ma_engine_uninit(&AcAudioEngine), dmExtension::RESULT_OK;	// With the lua_State closed.
+}
 DM_DECLARE_EXTENSION(AcAudio, "AcAudio", AcAudioAPPInit, AcAudioAPPFinal, AcAudioInit, nullptr, AcAudioOnEvent, AcAudioFinal)
