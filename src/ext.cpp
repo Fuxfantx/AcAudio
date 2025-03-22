@@ -258,7 +258,7 @@ static dmExtension::Result AcAudioInit(dmExtension::Params* p) {
 		 rmConfig.decodedFormat						= device -> playback.format;
 		 rmConfig.decodedChannels					= device -> playback.channels;
 		 rmConfig.decodedSampleRate					= device -> sampleRate;
-		 rmConfig.customDecodingBackendCount		= std::size(Exts);
+		 rmConfig.customDecodingBackendCount		= sizeof(Exts) / sizeof( Exts[0] );
 		 rmConfig.ppCustomDecodingBackendVTables	= Exts;
 	ma_resource_manager_init( &rmConfig, &AcAudioManager );
 	ma_engine_uninit( &PseudoEngine );
